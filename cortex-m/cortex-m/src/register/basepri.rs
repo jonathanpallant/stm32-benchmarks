@@ -1,0 +1,47 @@
+//! Base Priority Mask Register
+
+#[cfg(any(armv7m, armv8m))]
+use core::arch::asm;
+use cortex_m_macros::asm_cfg;
+
+/// Reads the CPU register
+#[inline]
+#[asm_cfg(any(armv7m, armv8m_main))]
+pub fn read() -> u8 {
+    let r;
+    unsafe { asm!("mrs {}, BASEPRI", out(reg) r, options(nomem, nostack, preserves_flags)) };
+    r
+}
+
+/// Writes to the CPU register
+///
+/// **IMPORTANT** If you are using a Cortex-M7 device with revision r0p1 you MUST enable the
+/// `cm7-r0p1` Cargo feature or this function WILL misbehave.
+#[inline]
+#[asm_cfg(any(armv7m, armv8m_main))]
+pub unsafe fn write(basepri: u8) {
+    #[cfg(not(feature = "cm7-r0p1"))]
+    {
+        unsafe {
+            asm!("msr BASEPRI, {}", in(reg) basepri, options(nomem, nostack, preserves_flags))
+        };
+    }
+
+    #[cfg(feature = "cm7-r0p1")]
+    {
+        unsafe {
+            asm!(
+                "mrs {1}, PRIMASK",
+                "cpsid i",
+                "tst.w {1}, #1",
+                "msr BASEPRI, {0}",
+                "it ne",
+                "bxne lr",
+                "cpsie i",
+                in(reg) basepri,
+                out(reg) _,
+                options(nomem, nostack, preserves_flags),
+            )
+        };
+    }
+}

@@ -1,0 +1,27 @@
+[package]
+categories = ["embedded", "no-std"]
+description = "Attributes used by `cortex-m`"
+documentation = "https://docs.rs/cortex-m-rt"
+license = "MIT OR Apache-2.0"
+name = "cortex-m-macros"
+repository = "https://github.com/rust-embedded/cortex-m"
+version = "0.7.8"
+edition = "2024"
+rust-version = "1.85"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0.106"
+quote = "1.0.45"
+syn = { version = "3.0", features = ["extra-traits", "full"] }
+
+[dev-dependencies]
+macrotest = "1.2.1"
+
+[[bin]]
+name = "asm_cfg_fn_test"
+test = false
+bench = false
+path = "test_bin/asm_cfg_fn_test.rs"
